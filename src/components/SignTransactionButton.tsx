@@ -3,10 +3,13 @@ import { toViem } from "@coinbase/waas-sdk-viem";
 import { createWalletClient, custom } from "viem";
 import { useEffect } from "react";
 import { testnet } from "../chain/testnet";
-import { useConnex } from "@vechain/dapp-kit-react";
-import { Provider } from "@vechain/web3-providers-connex";
 import { ethers } from "ethers";
 import { vechain } from "viem/chains";
+import { HttpClient, VechainProvider } from "@vechain/sdk-network";
+
+import { ThorClient } from "@vechain/sdk-network";
+
+const client = new ThorClient(new HttpClient(testnet.rpcUrls.default.http[0]));
 
 console.log(vechain.id);
 
@@ -14,8 +17,6 @@ console.log(vechain.id);
 export const SignTransactionButton = () => {
   const { wallet } = useWalletContext();
   const address = useEVMAddress(wallet);
-
-  const connex = useConnex();
 
   useEffect(() => {
     console.log(wallet);
@@ -39,17 +40,18 @@ export const SignTransactionButton = () => {
         const walletClient = createWalletClient({
           account,
           chain: testnet,
-          //   transport: http(),
-          transport: custom(new Provider({ connex })),
+          //   transport: http(testnet.rpcUrls.default.rpc[0]),
+          transport: custom(new VechainProvider(client)),
         });
 
         console.log("valueToSend", valueToSend.toString());
 
-        account.signTransaction({
-          account,
-          to: "0xf077b491b355E64048cE21E3A6Fc4751eEeA77fa",
-          value: 1000000000000000000n,
-        });
+        // await account.signTransaction({
+        //   account,
+        //   to: "0xf077b491b355E64048cE21E3A6Fc4751eEeA77fa",
+        //   value: valueToSend,
+        //   data: "0x",
+        // });
 
         // send the transaction.
 
@@ -62,9 +64,10 @@ export const SignTransactionButton = () => {
 
         //TODO: this throws Number "1.17645579097283e+66" is not in safe integer error
         const txHash = await walletClient.sendTransaction({
-          account: account,
+          account,
           to: "0xf077b491b355E64048cE21E3A6Fc4751eEeA77fa",
           value: valueToSend,
+          data: "0x",
         });
 
         console.log("Sent VET!", txHash);

@@ -9,11 +9,11 @@ export const testnet = {
   },
   rpcUrls: {
     public: {
-      http: ["https://node-testnet.vechain.energy"],
+      http: ["https://testnet.vechain.org"],
       rpc: ["http://localhost:8545"],
     },
     default: {
-      http: ["https://node-testnet.vechain.energy"],
+      http: ["https://testnet.vechain.org"],
       rpc: ["http://localhost:8545"],
     },
   },
