@@ -1,19 +1,36 @@
 import { useWalletContext } from "@coinbase/waas-sdk-web-react";
+import { useEffect } from "react";
 
 export const CreateOrResumeWalletButton = () => {
-  const { waas, user, wallet, isCreatingWallet } = useWalletContext();
+  const { waas, user, wallet, isCreatingWallet, error } = useWalletContext();
 
+  console.log({
+    waas,
+    user,
+    wallet,
+    isCreatingWallet,
+    error,
+  });
+  useEffect(() => {
+    if (error) {
+      console.error("Error creating or restoring wallet:", error);
+    }
+  }, [error]);
+
+  const isDisabled = !waas || !user || isCreatingWallet || !!wallet;
+
+  console.log("isDisabled", isDisabled);
   return (
     <button
-      disabled={!waas || !user || isCreatingWallet || !!wallet}
+      disabled={isDisabled}
       onClick={async () => {
         // check if your user has a wallet, and restore it if they do!
-        if (user!.hasWallet) {
+        if (user?.hasWallet) {
           // restores the user's existing wallet.
-          user!.restoreFromHostedBackup!();
+          user.restoreFromHostedBackup!();
         } else {
           // creates a new wallet.
-          user!.create();
+          user?.create();
         }
       }}
     >

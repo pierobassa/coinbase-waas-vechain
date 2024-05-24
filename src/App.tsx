@@ -1,6 +1,7 @@
 import { useEVMAddress, useWalletContext } from "@coinbase/waas-sdk-web-react";
 import {
   CreateOrResumeWalletButton,
+  LoginButton,
   LogoutButton,
   SignTransactionButton,
   ViewMyAddressLabel,
@@ -12,7 +13,12 @@ function App() {
 
   return (
     <>
-      {!address && <CreateOrResumeWalletButton />}
+      {!address && (
+        <>
+          <LoginButton />
+          <CreateOrResumeWalletButton />
+        </>
+      )}
       {address && (
         <>
           <ViewMyAddressLabel />
