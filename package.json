@@ -21,7 +21,7 @@
     "ethers": "^6.12.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "viem": "^2.12.1"
+    "viem": "./viem-fork-vechain/src"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
@@ -35,5 +35,8 @@
     "typescript": "^5.2.2",
     "vite": "^5.2.0",
     "vite-plugin-node-polyfills": "^0.22.0"
+  },
+  "resolutions": {
+    "viem": "./viem-fork-vechain/src"
   }
 }

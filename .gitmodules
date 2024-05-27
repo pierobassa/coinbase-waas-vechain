@@ -1,0 +1,3 @@
+[submodule "viem-fork-vechain"]
+	path = viem-fork-vechain
+	url = https://github.com/pierobassa/viem.git
