@@ -5,9 +5,7 @@ import { useEffect } from "react";
 import { testnet } from "../chain/testnet";
 import { ethers } from "ethers";
 import { vechain } from "viem/chains";
-import { HttpClient, VechainProvider } from "@vechain/sdk-network";
-
-import { ThorClient } from "@vechain/sdk-network";
+import { HttpClient, VechainProvider, ThorClient } from "@vechain/sdk-network";
 
 const client = new ThorClient(new HttpClient(testnet.rpcUrls.default.http[0]));
 
