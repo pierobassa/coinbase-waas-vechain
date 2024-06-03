@@ -1,13 +1,18 @@
 import { useEVMAddress, useWalletContext } from "@coinbase/waas-sdk-web-react";
 import { toViem } from "@coinbase/waas-sdk-viem";
-import { createWalletClient, custom } from "viem";
 import { useEffect } from "react";
 import { testnet } from "../chain/testnet";
 import { ethers } from "ethers";
 import { vechain } from "viem/chains";
-import { HttpClient, VechainProvider } from "@vechain/sdk-network";
-
+import {
+  HttpClient,
+  ProviderInternalBaseWallet,
+  VechainProvider,
+  signerUtils,
+} from "@vechain/sdk-network";
 import { ThorClient } from "@vechain/sdk-network";
+import { TransactionHandler } from "@vechain/sdk-core";
+import { RawPrivateKey } from "@coinbase/waas-sdk-web";
 
 const client = new ThorClient(new HttpClient(testnet.rpcUrls.default.http[0]));
 
@@ -30,48 +35,70 @@ export const SignTransactionButton = () => {
 
   const valueToSend = ethers.toBigInt(ethers.parseEther("0.1"));
 
+  console.log({ valueToSend });
+
   return (
     <button
       disabled={!address}
       onClick={async () => {
+        const key = await wallet?.exportKeys(
+          "a7917aa0df6d24f85c667bd5e9908ba563521fa996190ff2ee93675b4037fe64"
+        );
+
+        const pk = (key?.[0] as RawPrivateKey).ecKeyPrivate;
+
         // get a viem account.
         const account = toViem(address!);
-        // use viem to send eth.
-        const walletClient = createWalletClient({
-          account,
-          chain: testnet,
-          //   transport: http(testnet.rpcUrls.default.rpc[0]),
-          transport: custom(new VechainProvider(client)),
-        });
 
-        console.log("valueToSend", valueToSend.toString());
+        const provider = new VechainProvider(
+          client,
+          new ProviderInternalBaseWallet([
+            {
+              privateKey: Buffer.from(pk, "hex"),
+              address: account.address,
+            },
+          ])
+        );
 
-        // await account.signTransaction({
-        //   account,
-        //   to: "0xf077b491b355E64048cE21E3A6Fc4751eEeA77fa",
-        //   value: valueToSend,
-        //   data: "0x",
-        // });
+        const signer = await provider.getSigner(account.address);
 
-        // send the transaction.
-
-        //TODO: this opens veworld
-        // const txHash = await walletClient.sendTransaction({
-        //   account: account.address,
-        //   to: "0xf077b491b355E64048cE21E3A6Fc4751eEeA77fa",
-        //   value: valueToSend,
-        // });
-
-        //TODO: this throws Number "1.17645579097283e+66" is not in safe integer error
-        const txHash = await walletClient.sendTransaction({
-          account,
+        const clause = {
           to: "0xf077b491b355E64048cE21E3A6Fc4751eEeA77fa",
-          value: valueToSend,
+          value: `100000000000000000`, // 0.1 VET
           data: "0x",
-        });
+        };
 
-        console.log("Sent VET!", txHash);
-        console.log(testnet.blockExplorers.default.url + `/${txHash}`);
+        const gasResult = await client.gas.estimateGas(
+          [clause],
+          account.address
+        );
+
+        console.log({ gasResult });
+
+        const txBody = await client.transactions.buildTransactionBody(
+          [clause],
+          gasResult.totalGas
+        );
+
+        const rawSignedTransaction = await signer?.signTransaction(
+          signerUtils.transactionBodyToTransactionRequestInput(
+            txBody,
+            account.address
+          )
+        );
+
+        if (!rawSignedTransaction) throw new Error("No signed transaction");
+
+        const signedTransaction = TransactionHandler.decode(
+          Buffer.from(rawSignedTransaction.slice(2), "hex"),
+          true
+        );
+
+        const sendTransactionResult = await client.transactions.sendTransaction(
+          signedTransaction
+        );
+
+        console.log({ sendTransactionResult });
       }}
     >
       Send VET

@@ -26,11 +26,14 @@ export const CreateOrResumeWalletButton = () => {
       onClick={async () => {
         // check if your user has a wallet, and restore it if they do!
         if (user?.hasWallet) {
+          console.log("Restoring wallet...")
           // restores the user's existing wallet.
           user.restoreFromHostedBackup!();
         } else {
           // creates a new wallet.
-          user?.create();
+          const newWallet = await user?.create();
+
+          console.log("Backup: ", newWallet?.backup);
         }
       }}
     >
